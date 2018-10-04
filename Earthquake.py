@@ -1,8 +1,8 @@
 import numpy as np
-from FileReader import getFiles, getData, getTotalPoints, getPointsPerSecond
+from FileReader import getFilesPerStation, getData, getTotalPoints, getPointsPerSecond
+from FrequencyHelper import normalize
 from GraphPlot import plot
 from FileRetriever import retrieveWilberData
-from scipy import signal
 
 # he folder in which the earthquake data can be found
 folder = "Data"
@@ -13,22 +13,26 @@ magnitudes = []
 frequencies = []
 highestFrequencies = []
 
-for file in getFiles(folder):
+filesPerStation = getFilesPerStation(folder)
+# the North-South and East-West files of a station 
+for fileNS, fileEW in filesPerStation:
     # simulate an amount of points based on the files parameters
-    totalPoints = getTotalPoints(file)
-    pointsPerSecond = getPointsPerSecond(file)
+    # if the total amount of points are not equal, ignore these measurements
+    if(getTotalPoints(fileNS) != getTotalPoints(fileEW)):
+        print("Different amount of points for files: " + fileNS + " and " + fileEW 
+            + " (these will be ignored)")
+        continue
+    totalPoints = getTotalPoints(fileNS)
+
+    pointsPerSecond = getPointsPerSecond(fileNS)
 
     # get the magnitude from the file
     x = np.linspace(0, pointsPerSecond * totalPoints, totalPoints)
-    y = getData(file)
+    # normalize the data by detrending and windowing
+    yNS = normalize(getData(fileNS), totalPoints)
+    yEW = normalize(getData(fileEW), totalPoints)
 
-    # make sure the line stays around 0 (it is properly calibrated)
-    y = signal.detrend(y)
-
-    # use a window function on the data to make the data fit
-    windowFunction = np.bartlett(totalPoints)
-    for i, windowFactor in enumerate(windowFunction):
-        y[i] = y[i] * windowFactor
+    y = yNS
 
     magnitudes.append([x, y])
 

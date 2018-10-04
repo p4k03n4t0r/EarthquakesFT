@@ -1,14 +1,30 @@
+from itertools import groupby
 import os
 
-# get all files from the provided folder name
-def getFiles(folder):
+# get all files from the provided folder name grouped per station
+# only the North-South and East-West files of a station are returned
+# the Vertical file is ignored
+def getFilesPerStation(folder):
     files = os.listdir(folder)
 
     filesWithPath = []
     # add the folder to the path of each file
     for file in files:
         filesWithPath.append(folder + "/" + file)
-    return filesWithPath
+
+    # we group the files based on the first 11 characters (indicating state and station)
+    # example: Data/IU.KBS
+    groupedFiles = [list(g) for k, g in groupby(filesWithPath, key=lambda x: x[:11])]
+
+    # we are only interested in the North-South (BHN) and East-West (BHE) files of each station
+    # the Vertical filez (BHZ) are ignored
+    filteredGroupedFiles = []
+    for fileGroup in groupedFiles:
+        fileBHN = [file for file in fileGroup if "BHN" in file]
+        fileBHE = [file for file in fileGroup if "BHE" in file]
+        filteredGroupedFiles.append([fileBHN[0], fileBHE[0]])
+
+    return filteredGroupedFiles
 
 # read a file in the format received from Wilber3: http://ds.iris.edu/wilber3
 def getData(file):
@@ -38,10 +54,3 @@ def getPointsPerSecond(file):
         if(i == 4):
             hz = float(line.replace("# sample_rate_hz: ","").replace("\n",""))
             return 1/hz
-
-# get the start time of the earthquake from the file
-# def getStartTime(file):
-#     f = open(file, "r") 
-#     for i, line in enumerate(f):
-#         if(i == 5):
-#             return datetime.datetime(line.replace("# start_time: ","").replace("\n","")
