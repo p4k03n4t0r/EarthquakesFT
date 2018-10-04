@@ -1,8 +1,10 @@
 import numpy as np
 from FileReader import getFilesPerStation, getData, getTotalPoints, getPointsPerSecond
-from FrequencyHelper import normalize, rotate
+from FrequencyHelper import addWindow, rotate
 from GraphPlot import plot, plotDisplacement
 from FileRetriever import retrieveWilberData
+import matplotlib.pyplot as plt
+from scipy import signal
 
 # he folder in which the earthquake data can be found
 folder = "Data"
@@ -28,15 +30,23 @@ for fileNS, fileEW in filesPerStation:
 
     # get the magnitude from the file
     x = np.linspace(0, pointsPerSecond * totalPoints, totalPoints)
-    # normalize the data by detrending and windowing
-    yNS = normalize(getData(fileNS), totalPoints)
-    yEW = normalize(getData(fileEW), totalPoints)
+
+    # get the North-South and East-West values from the files
+    # make sure the lines stay around 0, so it is properly calibrated
+    yNS = signal.detrend(getData(fileNS))
+    yEW = signal.detrend(getData(fileEW))
 
     # plot the displacement, North-Sound on the y-axis and East-West on the x-axis
     #plotDisplacement(yNS, yEW)
-    y1, y2 = rotate(yNS, yEW)
-    continue
-    y = yNS
+
+    # rotate the points from North-South on Y-axis and East-West on X-axis
+    # to maximum amplitude face the Y-axis
+    yX, yY = rotate(yNS, yEW)
+    #plotDisplacement(yX, yY)
+
+    # use the most displaced axis to calculate the frequency
+    # apply a window function to make the data fit for FT
+    y = addWindow(yY)
 
     magnitudes.append([x, y])
 
