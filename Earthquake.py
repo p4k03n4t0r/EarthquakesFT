@@ -1,7 +1,7 @@
 import numpy as np
 from FileReader import getFilesPerStation, getData, getTotalPoints, getPointsPerSecond
-from FrequencyHelper import normalize
-from GraphPlot import plot
+from FrequencyHelper import normalize, rotate
+from GraphPlot import plot, plotDisplacement
 from FileRetriever import retrieveWilberData
 
 # he folder in which the earthquake data can be found
@@ -32,6 +32,10 @@ for fileNS, fileEW in filesPerStation:
     yNS = normalize(getData(fileNS), totalPoints)
     yEW = normalize(getData(fileEW), totalPoints)
 
+    # plot the displacement, North-Sound on the y-axis and East-West on the x-axis
+    #plotDisplacement(yNS, yEW)
+    y1, y2 = rotate(yNS, yEW)
+    continue
     y = yNS
 
     magnitudes.append([x, y])
