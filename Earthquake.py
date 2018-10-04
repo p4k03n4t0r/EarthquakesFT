@@ -37,12 +37,12 @@ for fileNS, fileEW in filesPerStation:
     yEW = signal.detrend(getData(fileEW))
 
     # plot the displacement, North-Sound on the y-axis and East-West on the x-axis
-    #plotDisplacement(yNS, yEW)
+    plotDisplacement(yNS, yEW)
 
     # rotate the points from North-South on Y-axis and East-West on X-axis
     # to maximum amplitude face the Y-axis
     yX, yY = rotate(yNS, yEW)
-    #plotDisplacement(yX, yY)
+    plotDisplacement(yX, yY)
 
     # use the most displaced axis to calculate the frequency
     # apply a window function to make the data fit for FT

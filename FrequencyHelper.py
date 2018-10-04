@@ -14,12 +14,9 @@ def addWindow(points):
 
 # get the phi of the two points
 def getPhi(adjacent, opposite):
-    # Calculate the phi in degrees by doing: atan(o/a)
+    # Calculate the phi in degrees by doing: atan(opposite/adjacent)
     # the absolute of o and a are needed to properly calculate the corner
-    if(adjacent == 0):
-        phi = 0
-    else:    
-        phi = np.degrees(np.arctan(abs(opposite)/abs(adjacent)))
+    phi = np.degrees(np.arctan(abs(opposite)/abs(adjacent)))
 
     # decide the area where the point is located
     # area: North-East (+ 0 degrees)
@@ -64,7 +61,8 @@ def rotate(yNS, yEW):
     # plot the phis in a histogram
     #plotHistogram(phis, totalBins)
 
-    rotatedY1 = []
+    yX = []
+    yY = []
 
     for i in range(0, len(yNS)):
         # the hypothenuse is the hyptohenuse of the North-South and East-West values
@@ -75,23 +73,15 @@ def rotate(yNS, yEW):
         # East-West is opposite
         phi = getPhi(yNS[i], yEW[i])
 
+        # corner of the triangle
         corner = maxPhi - phi
-        length = np.sin(np.radians(corner)) * hypotenuse
-        rotatedY1.append(length)
 
-    rotatedY2 = []
+        # calculate the opposite
+        opposite = np.sin(np.radians(corner)) * hypotenuse
+        yX.append(opposite)
 
-    for i in range(0, len(yNS)):
-        # the hypothenuse is the hyptohenuse of the North-South and East-West values
-        hypotenuse = np.sqrt(np.square(yNS[i]) + np.square(yEW[i]))
+        # calculate the adjecant
+        adjecant = np.cos(np.radians(corner)) * hypotenuse
+        yY.append(adjecant)
 
-        # get the corner in degrees of this point relative to the start
-        # North-South is adjacent
-        # East-West is opposite
-        phi = getPhi(yNS[i], yEW[i])
-
-        corner = maxPhi - phi
-        length = np.cos(np.radians(corner)) * hypotenuse
-        rotatedY2.append(length)
-
-    return rotatedY1, rotatedY2
+    return yX, yY
