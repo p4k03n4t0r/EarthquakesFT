@@ -21,67 +21,67 @@ def getPhi(adjacent, opposite):
     # decide the area where the point is located
     # area: North-East (+ 0 degrees)
     if(opposite >= 0 and adjacent >= 0):
-        phi += 0
+        phi = 90 - phi
     # area: South-East (+ 90 degrees)
-    if(opposite >= 0 and adjacent < 0):
+    if(opposite < 0 and adjacent >= 0):
         phi += 90
     # area: South-West (+ 180 degrees)
     if(opposite < 0 and adjacent < 0):
-        phi += 180
+        phi = 270 - phi
     # area: North-West (+ 270 degrees)
-    if(opposite < 0 and adjacent >= 0):
+    if(opposite >= 0 and adjacent < 0):
         phi += 270
 
     return phi
 
 def rotate(yNS, yEW):   
     phis = []
+    # find the largest values in the North-South and East-West displacements
+    maxNS = abs(np.max(abs(yNS)))
+    maxEW = abs(np.max(abs(yEW)))
 
     # calculate the Azimuth for each point
     for i in range(0, len(yNS)):
-        # get the corner in degrees of this point relative to the start
-        # North-South is adjacent
-        # East-West is opposite
-        phi = getPhi(yNS[i], yEW[i])
+        # only take points which are 'peaks' by filtering out all corners of which the
+        # amplitude is less than 50% of the max displacement of that axis
+        if(abs(yNS[i]) > maxNS * 0.5 or abs(yEW[i]) > maxEW * 0.5):
+            # get the corner in degrees of this point relative to the start
+            # North-South is adjacent
+            # East-West is opposite
+            phi = getPhi(yNS[i], yEW[i])
 
-        # add all valid phi's to the array
-        if (not math.isnan(phi)):
-            phis.append(phi)
+            # add all valid phi's to the array
+            if (not math.isnan(phi)):
+                phis.append(phi)
 
     # divide the degrees in bins of 4 degrees wide 
-    binDegrees = 4
+    binDegrees = 10
     totalBins = int(360 / binDegrees)
 
     # calculate the histogram
     hist = np.histogram(phis, bins=totalBins)
 
     # find the index of the max value and map it back to degrees
-    maxPhi = np.argmax(hist[0]) * binDegrees
+    maxPhi = 360 - np.argmax(hist[0]) * binDegrees
 
     # plot the phis in a histogram
     #plotHistogram(phis, totalBins)
 
-    yX = []
-    yY = []
-
+    newX = []
+    newY = []
+    
     for i in range(0, len(yNS)):
-        # the hypothenuse is the hyptohenuse of the North-South and East-West values
-        hypotenuse = np.sqrt(np.square(yNS[i]) + np.square(yEW[i]))
-
         # get the corner in degrees of this point relative to the start
         # North-South is adjacent
         # East-West is opposite
         phi = getPhi(yNS[i], yEW[i])
 
-        # corner of the triangle
-        corner = maxPhi - phi
+        # find the hypotenuse by calculating the pythagoram theorom of the distance
+        # from the center (x=0, y=0) to the point
+        hypotenuse = np.sqrt(np.square(yNS[i]) + np.square(yEW[i]))
 
-        # calculate the opposite
-        opposite = np.sin(np.radians(corner)) * hypotenuse
-        yX.append(opposite)
+        # calculate the distances from the point to the line to which the point must be rotated
+        newX.append(np.sin(np.radians(phi - maxPhi)) * hypotenuse)
+        newY.append(np.cos(np.radians(phi - maxPhi)) * hypotenuse)
 
-        # calculate the adjecant
-        adjecant = np.cos(np.radians(corner)) * hypotenuse
-        yY.append(adjecant)
-
-    return yX, yY
+    return newX, newY

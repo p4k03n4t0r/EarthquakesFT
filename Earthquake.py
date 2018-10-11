@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 from scipy import signal
 
 # he folder in which the earthquake data can be found
-folder = "Data"
-#retrieveWilberData("paul/2018-09-15-mb42-adriatic-sea-2/timeseries_data/", folder)
+folder = "sulawesi"
+#retrieveWilberData("paul/2018-09-28-mww75-minahassa-peninsula-sulawesi/timeseries_data/", folder)
 
 # lists for the magnitudes and frequencies, which can be used to plot the graph
 magnitudes = []
@@ -37,11 +37,12 @@ for fileNS, fileEW in filesPerStation:
     yEW = signal.detrend(getData(fileEW))
 
     # plot the displacement, North-Sound on the y-axis and East-West on the x-axis
-    plotDisplacement(yNS, yEW)
+    #plotDisplacement(yNS, yEW)
 
     # rotate the points from North-South on Y-axis and East-West on X-axis
     # to maximum amplitude face the Y-axis
     yX, yY = rotate(yNS, yEW)
+    plt.plot(yNS, yEW)
     plotDisplacement(yX, yY)
 
     # use the most displaced axis to calculate the frequency
@@ -77,8 +78,8 @@ for fileNS, fileEW in filesPerStation:
     highestFrequencies.append(highestFreq)
 
 # plot a graph about all the magnitudes and one about all the frequencies
-plot(magnitudes, "Magnitudes over time per station", "Time (s)", "Displacement (microns)")
-plot(frequencies, "Frequencies per station", "Frequency", "Amplitude (energy of the frequency)")
+#plot(magnitudes, "Magnitudes over time per station", "Time (s)", "Displacement (microns)")
+#plot(frequencies, "Frequencies per station", "Frequency", "Amplitude (energy of the frequency)")
 
 # print the average frequency from all the measurements
 averageHighestFrequency = sum(highestFrequencies) / len(highestFrequencies)
