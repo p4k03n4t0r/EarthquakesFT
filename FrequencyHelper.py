@@ -59,6 +59,7 @@ def rotate(yNS, yEW):
     totalBins = int(360 / binDegrees)
 
     # calculate the histogram
+    #TODO mod 180
     hist = np.histogram(phis, bins=totalBins)
 
     # find the index of the max value and map it back to degrees
@@ -67,8 +68,8 @@ def rotate(yNS, yEW):
     # plot the phis in a histogram
     #plotHistogram(phis, totalBins)
 
-    newX = []
-    newY = []
+    rotatedX = []
+    rotatedY = []
     
     for i in range(0, len(yNS)):
         # get the corner in degrees of this point relative to the start
@@ -76,12 +77,15 @@ def rotate(yNS, yEW):
         # East-West is opposite
         phi = getPhi(yNS[i], yEW[i])
 
+        # get the phi relative to the max phi
+        phiDiff = phi - maxPhi
+
         # find the hypotenuse by calculating the pythagoram theorom of the distance
         # from the center (x=0, y=0) to the point
         hypotenuse = np.sqrt(np.square(yNS[i]) + np.square(yEW[i]))
 
         # calculate the distances from the point to the line to which the point must be rotated
-        newX.append(np.sin(np.radians(phi - maxPhi)) * hypotenuse)
-        newY.append(np.cos(np.radians(phi - maxPhi)) * hypotenuse)
+        rotatedX.append(np.sin(np.radians(phiDiff)) * hypotenuse)
+        rotatedY.append(np.cos(np.radians(phiDiff)) * hypotenuse)
 
-    return newX, newY
+    return rotatedX, rotatedY
