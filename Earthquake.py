@@ -109,5 +109,5 @@ for earthquakeFolder in earthquakeFolders:
         print("Unexpected error for file " + earthquakeFolder)
 
 # plot the frequencies and magnitudes in a scatterplot so there can be searched for a relation between them
-plotMagnitudeFrequency(frequenciesForMwMagnitude, "Mb")
-plotMagnitudeFrequency(frequenciesForMbMagnitude, "Mw")
+plotMagnitudeFrequency(frequenciesForMbMagnitude, "Mb")
+plotMagnitudeFrequency(frequenciesForMwMagnitude, "Mw")
