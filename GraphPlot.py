@@ -24,3 +24,14 @@ def plotDisplacement(yNS, yEW):
 def plotHistogram(data, totalBins):
     plt.hist(data, bins=totalBins)
     plt.show()
+
+# plot the provided points in a scatterplot
+def plotMagnitudeFrequency(data, magnitudeScale):
+    for d in data:
+        plt.scatter(d[0], d[1], alpha=0.5)
+
+    plt.title("Frequency vs Magnitude (in " + magnitudeScale + ")")
+    plt.xlabel("Magnitude (in " + magnitudeScale + ")")
+    plt.ylabel("Frequency (Hz)")
+    plt.grid()
+    plt.show()

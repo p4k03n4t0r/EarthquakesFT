@@ -1,9 +1,8 @@
 import numpy as np
 from FileReader import getFilesPerStation, getData, getTotalPoints, getPointsPerSecond
 from FrequencyHelper import addWindow, rotate
-from GraphPlot import plot, plotDisplacement
+from GraphPlot import plot, plotDisplacement, plotMagnitudeFrequency
 from FileRetriever import retrieveWilberData, retrieveWilberFolderContent
-import matplotlib.pyplot as plt
 from scipy import signal
 
 # retrieve the earthquakes available for this user from Wilber 3
@@ -108,3 +107,7 @@ for earthquakeFolder in earthquakeFolders:
             print("Unknown magnitude scale: " + magnitudeScale)
     except:
         print("Unexpected error for file " + earthquakeFolder)
+
+# plot the frequencies and magnitudes in a scatterplot so there can be searched for a relation between them
+plotMagnitudeFrequency(frequenciesForMwMagnitude, "Mb")
+plotMagnitudeFrequency(frequenciesForMbMagnitude, "Mw")
