@@ -1,7 +1,8 @@
 from ftplib import FTP
 import os
 
-def retrieveFolderContent(directory):
+# retrieve the contents of this users folder on the Wilber ftp service
+def retrieveWilberFolderContent(directory):
     # create a ftp connection with the Wilber ftp server
     ftp = FTP("ds.iris.edu")
     ftp.login() 
@@ -11,10 +12,11 @@ def retrieveFolderContent(directory):
     return ftp.nlst()
 
 # retrieve the data from Wilber 3: http://ds.iris.edu/wilber3
-def retrieveWilberData(directory, outputDirectory):
+def retrieveWilberData(wilberUsername, earthquakeFolder):
+    directory = wilberUsername + "/" + earthquakeFolder + "/timeseries_data"
     # create output directory if it doesn't exist yet
-    if not os.path.exists(outputDirectory):
-        os.makedirs(outputDirectory)
+    if not os.path.exists(earthquakeFolder):
+        os.makedirs(earthquakeFolder)
 
     # create a ftp connection with the Wilber ftp server
     ftp = FTP("ds.iris.edu")
@@ -27,7 +29,7 @@ def retrieveWilberData(directory, outputDirectory):
 
     # download all files
     for filename in filenames:
-        local_filename = os.path.join(os.getcwd() + "/" + outputDirectory, filename)
+        local_filename = os.path.join(os.getcwd() + "/" + earthquakeFolder, filename)
 
         # only download the non existing files
         if not os.path.exists(local_filename):

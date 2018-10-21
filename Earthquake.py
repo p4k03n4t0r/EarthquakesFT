@@ -2,86 +2,109 @@ import numpy as np
 from FileReader import getFilesPerStation, getData, getTotalPoints, getPointsPerSecond
 from FrequencyHelper import addWindow, rotate
 from GraphPlot import plot, plotDisplacement
-from FileRetriever import retrieveWilberData, retrieveFolderContent
+from FileRetriever import retrieveWilberData, retrieveWilberFolderContent
 import matplotlib.pyplot as plt
 from scipy import signal
 
-#urls = ["paul/2018-05-01-mww52-northern-molucca-sea/timeseries_data/", "paul/2018-04-24-mww52-myanmar/timeseries_data/", "paul/2018-06-29-mww52-hawaii/timeseries_data/", "paul/2017-12-29-mww51-near-coast-of-guatemala/timeseries_data/", ""]
-urls = retrieveFolderContent("paul")
-for url in urls:
-    print("Retrieving " + url)
-    retrieveWilberData("paul/" + url + "/timeseries_data", url)
+# retrieve the earthquakes available for this user from Wilber 3
+username = "paul"
+earthquakeFolders = retrieveWilberFolderContent(username)
 
-    # lists for the magnitudes and frequencies, which can be used to plot the graph
-    magnitudes = []
-    frequencies = []
-    highestFrequencies = []
+frequenciesForMwMagnitude = []
+frequenciesForMbMagnitude = []
+for earthquakeFolder in earthquakeFolders:
+    try:   
+        print("Retrieving " + earthquakeFolder)
+        retrieveWilberData(username, earthquakeFolder)
 
-    filesPerStation = getFilesPerStation(url)
-    # the North-South and East-West files of a station 
-    for fileNS, fileEW in filesPerStation:
-        # simulate an amount of points based on the files parameters
-        # if the total amount of points are not equal, ignore these measurements
-        if(getTotalPoints(fileNS) != getTotalPoints(fileEW)):
-            print("Different amount of points for files: " + fileNS + " and " + fileEW 
-                + " (these will be ignored)")
-            continue
-        totalPoints = getTotalPoints(fileNS)
+        # lists for the magnitudes and frequencies, which can be used to plot the graph
+        magnitudes = []
+        frequencies = []
+        highestFrequencies = []
 
-        pointsPerSecond = getPointsPerSecond(fileNS)
+        filesPerStation = getFilesPerStation(earthquakeFolder)
+        # the North-South and East-West files of a station 
+        for fileNS, fileEW in filesPerStation:
+            # simulate an amount of points based on the files parameters
+            # if the total amount of points are not equal, ignore these measurements
+            if(getTotalPoints(fileNS) != getTotalPoints(fileEW)):
+                print("Different amount of points for files: " + fileNS + " and " + fileEW 
+                    + " (these will be ignored)")
+                continue
+            totalPoints = getTotalPoints(fileNS)
 
-        # get the magnitude from the file
-        x = np.linspace(0, pointsPerSecond * totalPoints, totalPoints)
+            pointsPerSecond = getPointsPerSecond(fileNS)
 
-        # get the North-South and East-West values from the files
-        # make sure the lines stay around 0, so it is properly calibrated
-        yNS = signal.detrend(getData(fileNS))
-        yEW = signal.detrend(getData(fileEW))
+            # get the magnitude from the file
+            x = np.linspace(0, pointsPerSecond * totalPoints, totalPoints)
 
-        # plot the displacement, North-Sound on the y-axis and East-West on the x-axis
-        #plotDisplacement(yNS, yEW)
+            # get the North-South and East-West values from the files
+            # make sure the lines stay around 0, so it is properly calibrated
+            yNS = signal.detrend(getData(fileNS))
+            yEW = signal.detrend(getData(fileEW))
 
-        # rotate the points from North-South on Y-axis and East-West on X-axis
-        # to maximum amplitude face the Y-axis
-        yX, yY = rotate(yNS, yEW)
-        #plotDisplacement(yX, yY)
+            # plot the displacement, North-Sound on the y-axis and East-West on the x-axis
+            #plotDisplacement(yNS, yEW)
 
-        # use the most displaced axis to calculate the frequency
-        # apply a window function to make the data fit for FT
-        y = addWindow(yY)
+            # rotate the points from North-South on Y-axis and East-West on X-axis
+            # to maximum amplitude face the Y-axis
+            yX, yY = rotate(yNS, yEW)
+            #plotDisplacement(yX, yY)
 
-        magnitudes.append([x, y])
+            # use the most displaced axis to calculate the frequency
+            # apply a window function to make the data fit for FT
+            y = addWindow(yY)
 
-        # calculate the Fourier Transforms of the sinus function
-        # which will result in a list of points for each frequency, where
-        # the x-axis represents real numbers and the y-axis imaginary numbers
-        # only calculate real numbers, thus use the rfft instead of fft
-        f = np.fft.rfft(y)
+            magnitudes.append([x, y])
 
-        # calculate the coördinates for each point
-        # since the real fourier transform is used, only half the total points minus 1 (for the 0) are used
-        freqx = np.linspace(0, pointsPerSecond * totalPoints, totalPoints / 2 + 1)
+            # calculate the Fourier Transforms of the sinus function
+            # which will result in a list of points for each frequency, where
+            # the x-axis represents real numbers and the y-axis imaginary numbers
+            # only calculate real numbers, thus use the rfft instead of fft
+            f = np.fft.rfft(y)
 
-        # convert the result of the FT from points (x= real number, y= imaginary number) to absolute values 
-        # by doing sqrt{ a^2 + b^2 } for each point
-        fy = abs(f)
+            # calculate the coördinates for each point
+            # since the real fourier transform is used, only half the total points minus 1 (for the 0) are used
+            freqx = np.linspace(0, pointsPerSecond * totalPoints, totalPoints / 2 + 1)
 
-        # plot the Fourier Transform
-        # use the frequencies on the x-axis
-        # use the absolute values of the Fourier Transform on the y-axis
-        frequencies.append([freqx, fy])
+            # convert the result of the FT from points (x= real number, y= imaginary number) to absolute values 
+            # by doing sqrt{ a^2 + b^2 } for each point
+            fy = abs(f)
 
-        # find the highest frequency
-        # normalize the found index by multiplying it by the frequency (Hz) 
-        # and 2 (since only the real part is taken)
-        maxFreq = fy.max()
-        highestFreq = np.argmax(fy) * pointsPerSecond * 2
-        highestFrequencies.append(highestFreq)
+            # plot the Fourier Transform
+            # use the frequencies on the x-axis
+            # use the absolute values of the Fourier Transform on the y-axis
+            frequencies.append([freqx, fy])
 
-    # plot a graph about all the magnitudes and one about all the frequencies
-    #plot(magnitudes, "Magnitudes over time per station", "Time (s)", "Displacement (microns)")
-    #plot(frequencies, "Frequencies per station", "Frequency", "Amplitude (energy of the frequency)")
+            # find the highest frequency
+            # normalize the found index by multiplying it by the frequency (Hz) 
+            # and 2 (since only the real part is taken)
+            maxFreq = fy.max()
+            highestFreq = np.argmax(fy) * pointsPerSecond * 2
+            highestFrequencies.append(highestFreq)
 
-    # print the average frequency from all the measurements
-    averageHighestFrequency = sum(highestFrequencies) / len(highestFrequencies)
-    print("Average frequency: " + str(round(averageHighestFrequency, 2)) + "HZ")
+        # plot a graph about all the magnitudes and one about all the frequencies
+        #plot(magnitudes, "Magnitudes over time per station", "Time (s)", "Displacement (microns)")
+        #plot(frequencies, "Frequencies per station", "Frequency", "Amplitude (energy of the frequency)")
+
+        # calculate the average frequency
+        averageHighestFrequency = sum(highestFrequencies) / len(highestFrequencies)
+
+        # print the average frequency from all the measurements
+        print(earthquakeFolder + ": " + str(round(averageHighestFrequency, 2)) + "Hz")
+
+        # retrieve the magnitude of the earthquake (earthquakeFolder contains the name of the earthquake)
+        # Example: 2007-08-15-mw81-near-coast-of-peru (magnitudeScale: mw and magnitude: 8.1)
+        earthquakeMagnitude = earthquakeFolder.split("-")[3]
+        magnitudeScale = earthquakeMagnitude[:2]
+        magnitude = float(earthquakeMagnitude[2:4])/10
+
+        # depending on the magnitude scale, divide the earthquake into the right magnitude scale
+        if(magnitudeScale == "mw"):
+            frequenciesForMwMagnitude.append([magnitude,averageHighestFrequency])
+        elif(magnitudeScale == "mb"):
+            frequenciesForMbMagnitude.append([magnitude,averageHighestFrequency])
+        else:
+            print("Unknown magnitude scale: " + magnitudeScale)
+    except:
+        print("Unexpected error for file " + earthquakeFolder)
