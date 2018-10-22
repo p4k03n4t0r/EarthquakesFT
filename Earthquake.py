@@ -4,6 +4,7 @@ from FrequencyHelper import addWindow, rotate
 from GraphPlot import plot, plotDisplacement, plotMagnitudeFrequency
 from FileRetriever import retrieveWilberData, retrieveWilberFolderContent
 from scipy import signal
+from StatisticsHelper import getTValue
 
 # retrieve the earthquakes available for this user from Wilber 3
 username = "paul"
@@ -99,9 +100,9 @@ for earthquakeFolder in earthquakeFolders:
         magnitude = float(earthquakeMagnitude[2:4])/10
 
         # depending on the magnitude scale, divide the earthquake into the right magnitude scale
-        if(magnitudeScale == "mw"):
+        if(magnitudeScale == "mw" and magnitude >= 5.5):
             frequenciesForMwMagnitude.append([magnitude,averageHighestFrequency])
-        elif(magnitudeScale == "mb"):
+        elif(magnitudeScale == "mb" and magnitude >= 3 and magnitude <= 5):
             frequenciesForMbMagnitude.append([magnitude,averageHighestFrequency])
         else:
             print("Unknown magnitude scale: " + magnitudeScale)
@@ -110,4 +111,6 @@ for earthquakeFolder in earthquakeFolders:
 
 # plot the frequencies and magnitudes in a scatterplot so there can be searched for a relation between them
 plotMagnitudeFrequency(frequenciesForMbMagnitude, "Mb")
+print("T value for Mb scale: " + str(getTValue(frequenciesForMbMagnitude)))
 plotMagnitudeFrequency(frequenciesForMwMagnitude, "Mw")
+print("T value for Mw scale: " + str(getTValue(frequenciesForMwMagnitude)))
