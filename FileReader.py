@@ -14,15 +14,17 @@ def getFilesPerStation(folder):
 
     # we group the files based on the first 11 characters (indicating state and station)
     # example: Data/IU.KBS
-    groupedFiles = [list(g) for k, g in groupby(filesWithPath, key=lambda x: x[:11])]
+    groupedFiles = [list(g) for k, g in groupby(filesWithPath, key=lambda x: x[:(len(folder) + 11)])]
 
-    # we are only interested in the North-South (BHN) and East-West (BHE) files of each station
+    # we are only interested in the North-South (BHN or BH1) and East-West (BHE or BH2) files of each station
     # the Vertical filez (BHZ) are ignored
     filteredGroupedFiles = []
     for fileGroup in groupedFiles:
-        fileBHN = [file for file in fileGroup if "BHN" in file]
-        fileBHE = [file for file in fileGroup if "BHE" in file]
-        filteredGroupedFiles.append([fileBHN[0], fileBHE[0]])
+        fileBHN = [file for file in fileGroup if "BHN" in file or "BH1" in file]
+        fileBHE = [file for file in fileGroup if "BHE" in file or "BH2" in file]
+        # if this file group has both a BHN and BHE seismogram add them
+        if(len(fileBHN) > 0 and len(fileBHE) > 0):
+            filteredGroupedFiles.append([fileBHN[0], fileBHE[0]])
 
     return filteredGroupedFiles
 
@@ -54,3 +56,13 @@ def getPointsPerSecond(file):
         if(i == 4):
             hz = float(line.replace("# sample_rate_hz: ","").replace("\n",""))
             return 1/hz
+
+# retrieve the current existing directories
+def getDataDirectories():
+    files = os.listdir(os.getcwd())
+    directories = []
+    for f in files:
+        # ignore files (they contain a dot) and python folder (they contain underscores)
+        if("." not in f and "_" not in f):
+            directories.append(f)
+    return directories

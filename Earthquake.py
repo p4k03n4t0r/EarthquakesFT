@@ -1,21 +1,25 @@
 import numpy as np
-from FileReader import getFilesPerStation, getData, getTotalPoints, getPointsPerSecond
+from FileReader import getFilesPerStation, getData, getTotalPoints, getPointsPerSecond, getDataDirectories
 from FrequencyHelper import addWindow, rotate
 from GraphPlot import plot, plotDisplacement, plotMagnitudeFrequency
 from FileRetriever import retrieveWilberData, retrieveWilberFolderContent
 from scipy import signal
 from StatisticsHelper import getTValue
 
+import matplotlib.pyplot as plt
+
 # retrieve the earthquakes available for this user from Wilber 3
-username = "paul"
-earthquakeFolders = retrieveWilberFolderContent(username)
+#username = "paul"
+#earthquakeFolders = retrieveWilberFolderContent(username)
+
+# use the localy existing earthquake data
+earthquakeFolders = getDataDirectories()
 
 frequenciesForMwMagnitude = []
 frequenciesForMbMagnitude = []
 for earthquakeFolder in earthquakeFolders:
     try:   
-        print("Retrieving " + earthquakeFolder)
-        retrieveWilberData(username, earthquakeFolder)
+        #retrieveWilberData(username, earthquakeFolder)
 
         # lists for the magnitudes and frequencies, which can be used to plot the graph
         magnitudes = []
@@ -91,7 +95,7 @@ for earthquakeFolder in earthquakeFolders:
         averageHighestFrequency = sum(highestFrequencies) / len(highestFrequencies)
 
         # print the average frequency from all the measurements
-        print(earthquakeFolder + ": " + str(round(averageHighestFrequency, 2)) + "Hz")
+        print(earthquakeFolder + ": " + str(round(averageHighestFrequency, 2)) + "Hz with " + str(len(highestFrequencies)) + " stations")
 
         # retrieve the magnitude of the earthquake (earthquakeFolder contains the name of the earthquake)
         # Example: 2007-08-15-mw81-near-coast-of-peru (magnitudeScale: mw and magnitude: 8.1)
@@ -106,11 +110,15 @@ for earthquakeFolder in earthquakeFolders:
             frequenciesForMbMagnitude.append([magnitude,averageHighestFrequency])
         else:
             print("Unknown magnitude scale: " + magnitudeScale)
+    except KeyboardInterrupt:
+        exit()
     except:
         print("Unexpected error for file " + earthquakeFolder)
 
 # plot the frequencies and magnitudes in a scatterplot so there can be searched for a relation between them
 plotMagnitudeFrequency(frequenciesForMbMagnitude, "Mb")
+print("n for Mb scale: " + str(len(frequenciesForMbMagnitude)))
 print("T value for Mb scale: " + str(getTValue(frequenciesForMbMagnitude)))
 plotMagnitudeFrequency(frequenciesForMwMagnitude, "Mw")
+print("n for Mw scale: " + str(len(frequenciesForMwMagnitude)))
 print("T value for Mw scale: " + str(getTValue(frequenciesForMwMagnitude)))
